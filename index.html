@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>People Lab ResearchNet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <div class="site-inner">
+        <div class="brand">
+          <h1 id="siteTitle">People Lab ResearchNet<span class="badge">LAB</span></h1>
+          <div class="sub" id="siteSub">우리 연구실 구성원들의 연구를 한곳에서</div>
+        </div>
+        <nav class="tabs">
+          <button data-view="papers" class="active">논문</button>
+          <button data-view="people">연구자</button>
+          <button data-view="network">네트워크</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- 검색/필터 툴바 (논문/연구자 뷰에서 표시) -->
+    <div class="toolbar" id="toolbar">
+      <div class="searchrow">
+        <div class="search">
+          <span class="ic">⌕</span>
+          <input id="q" type="text"
+                 placeholder="제목 · 저자 · 방법론 · 주제로 검색  (예: 텍스트 마이닝, 리더십, 김지훈)" />
+        </div>
+        <button class="clearbtn" id="clearBtn">초기화</button>
+      </div>
+
+      <div class="filters" id="filters">
+        <span class="selectbox">
+          <label>학위</label>
+          <select id="fDegree">
+            <option value="">전체</option>
+            <option value="advisor">지도교수</option>
+            <option value="PhD">박사</option>
+            <option value="MS">석사</option>
+            <option value="BS">학사</option>
+          </select>
+        </span>
+        <span class="selectbox">
+          <label>구분</label>
+          <select id="fStatus">
+            <option value="">전체</option>
+            <option value="enrolled">재학</option>
+            <option value="completed">수료</option>
+            <option value="graduated">졸업</option>
+          </select>
+        </span>
+        <span class="selectbox">
+          <label>방법론</label>
+          <select id="fMethod"><option value="">전체</option></select>
+        </span>
+        <span class="selectbox">
+          <label>주제</label>
+          <select id="fTopic"><option value="">전체</option></select>
+        </span>
+        <span class="selectbox" id="sortBox">
+          <label>정렬</label>
+          <select id="fSort">
+            <option value="year_desc">최신순</option>
+            <option value="year_asc">오래된순</option>
+            <option value="title">제목순</option>
+          </select>
+        </span>
+        <span class="count" id="count"></span>
+      </div>
+
+      <div class="activechips" id="activechips"></div>
+    </div>
+
+    <main>
+      <!-- 논문 뷰 -->
+      <section class="view active" id="view-papers">
+        <div class="paperlist" id="paperlist"></div>
+      </section>
+
+      <!-- 연구자 뷰 -->
+      <section class="view" id="view-people">
+        <div class="people" id="peoplegrid"></div>
+      </section>
+
+      <!-- 네트워크 뷰 -->
+      <section class="view" id="view-network">
+        <div class="netwrap">
+          <p class="net-hint">
+            원(●) = 연구자, 선 = 공저 관계(굵을수록 공저 논문이 많음).
+            노드를 드래그해 옮기거나 클릭하면 해당 연구자의 논문을 볼 수 있어요.
+            위 검색·필터로 특정 방법론/주제 연구자만 강조할 수 있습니다.
+          </p>
+          <svg id="net"></svg>
+          <div class="net-legend">
+            <span class="k"><span class="swatch"></span> 지도교수 · 박사</span>
+            <span class="k"><span class="swatch ms"></span> 석사 · 학사</span>
+            <span class="k">노드 크기 = 논문 수</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 상세 패널 -->
+  <div class="overlay" id="overlay">
+    <div class="panel" id="panel"></div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-lead">
+        <span class="lbl">개발자:</span> <b>Donghwan Kim</b>
+        <span class="sep">·</span>
+        <span class="lbl">후원사:</span> <b>SNU People Lab</b>
+      </div>
+
+      <div class="foot-meta">
+        <span><span class="lbl">Mobile:</span> -</span>
+        <span><span class="lbl">사업자:</span> -</span>
+        <span><span class="lbl">Contact:</span> <a href="mailto:vision2030@snu.ac.kr">vision2030@snu.ac.kr</a></span>
+      </div>
+
+      <div class="foot-support">
+        <span class="lbl">후원</span> <b>3333-31-7989829</b> 카카오뱅크 <span class="sep">·</span> 예금주: 김동환
+      </div>
+
+      <div class="foot-policy">
+        <a href="#">개인정보처리방침</a>
+        <span class="sep">·</span>
+        <a href="#">이용약관</a>
+      </div>
+
+      <div class="foot-social" aria-label="소셜 링크">
+        <a href="#" aria-label="YouTube" title="YouTube (링크 연결 예정)">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C19.3 5 12 5 12 5s-7.3 0-8.8.5A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C4.7 19 12 19 12 19s7.3 0 8.8-.5a2.5 2.5 0 0 0 1.8-1.8C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram" title="Instagram (링크 연결 예정)">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" aria-label="Facebook" title="Facebook (링크 연결 예정)">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M14 8.5V7c0-.8.5-1 1-1h2V3h-3c-2.2 0-3.5 1.5-3.5 3.8V8.5H8V11h2.5v10H14V11h2.3l.5-2.5H14z"/></svg>
+        </a>
+        <a href="#" aria-label="X" title="X (링크 연결 예정)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18.9 2H22l-7 8 8.2 12h-6.4l-5-7.3L9 22H6l7.5-8.6L5.6 2H12l4.5 6.6L18.9 2z"/></svg>
+        </a>
+        <a href="mailto:vision2030@snu.ac.kr" aria-label="Email" title="이메일 보내기">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7l8 6 8-6"/></svg>
+        </a>
+      </div>
+
+      <div class="foot-copy">© 2026 김동환 · AI x HR · 바이브코딩</div>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
