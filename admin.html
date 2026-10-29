@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>관리자 · People Lab ResearchNet</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ----------------------- 관리자 페이지 전용 스타일 ----------------------- */
+    .adm-head { border-bottom: 1px solid var(--line); padding: 18px 0 14px; margin-bottom: 18px; }
+    .adm-head h1 { font-family: var(--serif); font-size: 24px; margin: 0 0 4px; }
+    .adm-head .sub { font-size: 13px; color: var(--ink-3); }
+    .adm-head .back { font-size: 12.5px; }
+
+    .adm-note {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: var(--paper-2, #fafafa); padding: 12px 14px;
+      font-size: 12.5px; color: var(--ink-2); line-height: 1.7; margin-bottom: 18px;
+    }
+    .adm-note b { color: var(--ink); }
+
+    .adm-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+    .adm-bar .grow { flex: 1 1 200px; }
+    .adm-tabs { display: flex; gap: 6px; }
+    .adm-tabs button, .btn {
+      font-family: inherit; font-size: 13px; cursor: pointer;
+      border: 1px solid var(--ink); background: #fff; color: var(--ink);
+      border-radius: 6px; padding: 6px 12px;
+    }
+    .adm-tabs button.on, .btn.primary { background: var(--ink); color: #fff; }
+    .btn.ghost { border-color: var(--line); color: var(--ink-2); }
+    .btn.danger { border-color: #b3261e; color: #b3261e; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .adm-bar input[type="search"] {
+      width: 100%; font-family: inherit; font-size: 13px; padding: 7px 10px;
+      border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink);
+    }
+
+    .adm-count { font-size: 12.5px; color: var(--ink-3); margin-left: auto; }
+
+    /* 목록 */
+    .rowlist { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .row {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 11px 14px; border-bottom: 1px solid var(--line); background: #fff;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row:hover { background: #fcfcfc; }
+    .row .yr { font-family: var(--serif); font-size: 15px; width: 46px; flex-shrink: 0; color: var(--ink-2); }
+    .row .main { flex: 1; min-width: 0; }
+    .row .t { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+    .row .m { font-size: 12px; color: var(--ink-3); }
+    .row .acts { display: flex; gap: 6px; flex-shrink: 0; }
+    .row .acts .btn { padding: 4px 9px; font-size: 12px; }
+    .pill {
+      display: inline-block; font-size: 10.5px; border-radius: 4px;
+      padding: 0 5px; margin-right: 4px; background: #6e6e6e; color: #fff;
+    }
+    .pill.journal { background: #3d3d3d; }
+    .pill.conference { background: #6e6e6e; }
+    .pill.thesis { background: #8a8a8a; }
+    .pill.warn { background: #b3261e; }
+
+    /* 편집 폼 */
+    .editor {
+      border: 1px solid var(--ink); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 18px; background: #fff;
+    }
+    .editor h3 { font-family: var(--serif); font-size: 17px; margin: 0 0 12px; }
+    .fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+    .f { display: flex; flex-direction: column; gap: 3px; }
+    .f.wide { grid-column: 1 / -1; }
+    .f label { font-size: 11.5px; color: var(--ink-3); }
+    .f label .req { color: #b3261e; }
+    .f input, .f select, .f textarea {
+      font-family: inherit; font-size: 13px; padding: 6px 9px;
+      border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink);
+    }
+    .f textarea { resize: vertical; min-height: 64px; line-height: 1.6; }
+    .f .hint { font-size: 11px; color: var(--ink-3); }
+    .editor .foot { display: flex; gap: 8px; margin-top: 14px; }
+    .editor .foot .sp { margin-left: auto; }
+
+    /* 저자 선택 */
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; border: 1px solid var(--ink); border-radius: 999px; padding: 2px 6px 2px 9px;
+    }
+    .chip.reg { background: var(--ink); color: #fff; }
+    .chip.str { background: #fff; color: var(--ink); border-style: dashed; }
+    .chip button {
+      border: 0; background: none; cursor: pointer; font-size: 13px; line-height: 1;
+      color: inherit; padding: 0 2px;
+    }
+    .addrow { display: flex; gap: 6px; flex-wrap: wrap; }
+    .addrow select, .addrow input { font-family: inherit; font-size: 12.5px; padding: 5px 8px;
+      border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+
+    .err { color: #b3261e; font-size: 12.5px; margin-top: 8px; }
+    .ok  { color: #1b6b2f; font-size: 12.5px; margin-top: 8px; }
+
+    dialog.export { border: 1px solid var(--ink); border-radius: var(--radius); padding: 0; max-width: 820px; width: 92vw; }
+    dialog.export::backdrop { background: rgba(0,0,0,.35); }
+    dialog.export .dhead { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    dialog.export h3 { font-family: var(--serif); font-size: 18px; margin: 0 0 3px; }
+    dialog.export .dbody { padding: 14px 16px; }
+    dialog.export textarea {
+      width: 100%; height: 46vh; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11.5px; line-height: 1.5; border: 1px solid var(--line); border-radius: 6px; padding: 10px;
+    }
+    dialog.export .dfoot { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+
+    @media (max-width: 680px) {
+      .fgrid { grid-template-columns: 1fr; }
+      .row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="adm-head">
+      <h1>관리자</h1>
+      <div class="sub">People Lab ResearchNet · 논문과 연구자를 편집하고 <b>data.js</b>를 내려받습니다</div>
+      <div class="back"><a href="index.html">← 사이트로 돌아가기</a></div>
+    </div>
+
+    <div class="adm-note">
+      이 사이트는 서버 없이 동작하는 <b>정적 사이트</b>라 여기서 바로 저장되지 않습니다.
+      편집 내용은 <b>이 브라우저에만</b> 임시 보관되며, 사이트에 반영하려면
+      <b>data.js 내보내기</b> → 프로젝트 폴더의 <code>data.js</code> 교체 → 커밋·푸시하면 Vercel이 자동 배포합니다.
+      <br />로그인 기능이 없으므로 주소를 아는 사람은 누구나 열 수 있습니다. 다만 <b>편집 결과가 서버로 전송되지는 않습니다.</b>
+    </div>
+
+    <div class="adm-bar">
+      <div class="adm-tabs">
+        <button data-tab="papers" class="on">논문</button>
+        <button data-tab="authors">연구자</button>
+      </div>
+      <div class="grow"><input type="search" id="q" placeholder="제목 · 저자 · 게재지로 검색" /></div>
+      <button class="btn primary" id="btnNew">+ 새로 추가</button>
+      <button class="btn" id="btnExport">data.js 내보내기</button>
+      <button class="btn ghost" id="btnReset">편집 취소</button>
+    </div>
+    <div class="adm-bar" style="margin-top:-8px">
+      <span class="adm-count" id="count"></span>
+    </div>
+
+    <div id="editorHost"></div>
+    <div class="rowlist" id="list"></div>
+  </div>
+
+  <dialog class="export" id="dlg">
+    <div class="dhead">
+      <h3>data.js 내보내기</h3>
+      <div class="sub" style="font-size:12.5px;color:var(--ink-3)">
+        아래 내용을 프로젝트의 <code>data.js</code>에 그대로 덮어쓰세요. 파일 상단 주석과 하단 메모는 그대로 보존됩니다.
+      </div>
+    </div>
+    <div class="dbody"><textarea id="out" spellcheck="false"></textarea></div>
+    <div class="dfoot">
+      <button class="btn primary" id="btnDownload">파일 내려받기</button>
+      <button class="btn" id="btnCopy">클립보드 복사</button>
+      <span id="dlgMsg" class="ok" style="align-self:center"></span>
+      <button class="btn ghost" id="btnClose" style="margin-left:auto">닫기</button>
+    </div>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var KEY = "researchnet_admin_draft_v1";
+    var DEGREES = { advisor: "지도교수", PhD: "박사", MS: "석사", BS: "학사" };
+    var STATUS  = { enrolled: "재학", completed: "수료", graduated: "졸업" };
+    var TYPES   = { journal: "학술지", conference: "학회", thesis: "학위논문" };
+
+    var $ = function (s) { return document.querySelector(s); };
+    var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+    var esc = function (s) {
+      return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+      });
+    };
+
+    // ---------------------------------------------------------------- 상태
+    var base = clone(window.LAB_DATA);           // 배포본 (편집 취소 시 복귀 지점)
+    var data = clone(window.LAB_DATA);
+    try {
+      var saved = localStorage.getItem(KEY);
+      if (saved) data = JSON.parse(saved);
+    } catch (e) { /* 로컬 저장소를 못 써도 편집은 가능 */ }
+
+    var tab = "papers";
+    var editing = null;      // 편집 중인 객체(사본). null이면 폼 닫힘
+    var isNew = false;
+
+    function persist() {
+      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+    }
+    function dirty() { return JSON.stringify(base) !== JSON.stringify(data); }
+
+    // 등록 연구자 id → 이름
+    function authorName(id) {
+      var a = data.authors.filter(function (x) { return x.id === id; })[0];
+      return a ? a.name : null;
+    }
+    // authorIds 한 항목을 표시 문자열로
+    function labelOf(entry) { return authorName(entry) || entry; }
+
+    function nextId(prefix, pool) {
+      var n = 1, id;
+      do { id = prefix + String(n).padStart(2, "0"); n++; } while (pool.indexOf(id) >= 0);
+      return id;
+    }
+
+    // ------------------------------------------------------------- 목록 렌더
+    function matches(o, q) {
+      if (!q) return true;
+      q = q.toLowerCase();
+      var hay = tab === "papers"
+        ? [o.title, o.titleEn, o.venue, o.publisher, o.year,
+           (o.authorIds || []).map(labelOf).join(" "),
+           (o.methods || []).join(" "), (o.topics || []).join(" ")].join(" ")
+        : [o.name, o.nameEn, o.id, DEGREES[o.degree], STATUS[o.status]].join(" ");
+      return hay.toLowerCase().indexOf(q) >= 0;
+    }
+
+    function renderList() {
+      var q = $("#q").value.trim();
+      var items = (tab === "papers" ? data.papers : data.authors).filter(function (o) { return matches(o, q); });
+      if (tab === "papers") items = items.slice().sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
+
+      $("#count").textContent = tab === "papers"
+        ? "논문 " + items.length + " / " + data.papers.length + "편"
+        : "연구자 " + items.length + " / " + data.authors.length + "명";
+
+      if (!items.length) {
+        $("#list").innerHTML = '<div class="row"><div class="main"><div class="m">해당하는 항목이 없습니다.</div></div></div>';
+        return;
+      }
+
+      $("#list").innerHTML = items.map(function (o) {
+        if (tab === "papers") {
+          var auth = (o.authorIds || []).map(function (e) {
+            var reg = authorName(e);
+            return reg ? "<b>" + esc(reg) + "</b>" : esc(e);
+          }).join(", ");
+          var warn = !o.title || !(o.authorIds || []).length
+            ? '<span class="pill warn">확인필요</span>' : "";
+          return '<div class="row" data-id="' + esc(o.id) + '">' +
+            '<div class="yr">' + esc(o.year || "–") + "</div>" +
+            '<div class="main">' +
+              '<div class="t">' + warn +
+                '<span class="pill ' + esc(o.type) + '">' + esc(TYPES[o.type] || o.type) + "</span>" +
+                esc(o.title) + "</div>" +
+              '<div class="m">' + auth + (o.venue ? " · " + esc(o.venue) : "") + "</div>" +
+            "</div>" +
+            '<div class="acts">' +
+              '<button class="btn" data-act="edit">편집</button>' +
+              '<button class="btn danger" data-act="del">삭제</button>' +
+            "</div></div>";
+        }
+        var cnt = data.papers.filter(function (p) { return (p.authorIds || []).indexOf(o.id) >= 0; }).length;
+        return '<div class="row" data-id="' + esc(o.id) + '">' +
+          '<div class="yr">' + esc(cnt) + "편</div>" +
+          '<div class="main">' +
+            '<div class="t">' + esc(o.name) +
+              (o.nameEn ? ' <span class="m">' + esc(o.nameEn) + "</span>" : "") + "</div>" +
+            '<div class="m"><span class="pill">' + esc(DEGREES[o.degree] || o.degree) + "</span>" +
+              (o.status ? esc(STATUS[o.status] || o.status) + " · " : "") +
+              "<code>" + esc(o.id) + "</code></div>" +
+          "</div>" +
+          '<div class="acts">' +
+            '<button class="btn" data-act="edit">편집</button>' +
+            '<button class="btn danger" data-act="del">삭제</button>' +
+          "</div></div>";
+      }).join("");
+    }
+
+    // ------------------------------------------------------------- 편집 폼
+    function field(label, html, wide, hint) {
+      return '<div class="f' + (wide ? " wide" : "") + '"><label>' + label + "</label>" + html +
+        (hint ? '<div class="hint">' + hint + "</div>" : "") + "</div>";
+    }
+    function input(name, val, ph) {
+      return '<input data-k="' + name + '" value="' + esc(val || "") + '" placeholder="' + esc(ph || "") + '" />';
+    }
+    function select(name, val, map) {
+      return '<select data-k="' + name + '">' + Object.keys(map).map(function (k) {
+        return '<option value="' + k + '"' + (k === val ? " selected" : "") + ">" + esc(map[k]) + "</option>";
+      }).join("") + "</select>";
+    }
+
+    function renderEditor() {
+      var host = $("#editorHost");
+      if (!editing) { host.innerHTML = ""; return; }
+
+      if (tab === "papers") {
+        var o = editing;
+        var chips = (o.authorIds || []).map(function (e, i) {
+          var reg = authorName(e);
+          return '<span class="chip ' + (reg ? "reg" : "str") + '">' + esc(reg || e) +
+            '<button data-rm="' + i + '" title="제거">×</button></span>';
+        }).join("");
+        var opts = data.authors.map(function (a) {
+          return '<option value="' + esc(a.id) + '">' + esc(a.name) + "</option>";
+        }).join("");
+
+        host.innerHTML = '<div class="editor"><h3>' + (isNew ? "새 논문" : "논문 편집") + "</h3>" +
+          '<div class="fgrid">' +
+            field('제목 <span class="req">*</span>', input("title", o.title), true) +
+            field("영문 제목", input("titleEn", o.titleEn), true) +
+            field('저자 <span class="req">*</span>',
+              '<div class="chips" id="chips">' + (chips || '<span class="hint">아직 없습니다</span>') + "</div>" +
+              '<div class="addrow">' +
+                '<select id="addReg"><option value="">— 등록 연구자 추가 —</option>' + opts + "</select>" +
+                '<input id="addStr" placeholder="미등록자 이름 입력 후 Enter" />' +
+              "</div>", true,
+              "순서대로 표시됩니다. 등록 연구자는 링크·네트워크 노드가 생기고, 미등록자는 이름만 표시됩니다.") +
+            field("게재지 · 권(호) · 쪽", input("venue", o.venue, "예: 휴먼웨어연구, 9(1), 33-63"), true) +
+            field("발행기관", input("publisher", o.publisher)) +
+            field('연도 <span class="req">*</span>', '<input data-k="year" type="number" value="' + esc(o.year || "") + '" />') +
+            field("구분", select("type", o.type, TYPES)) +
+            field("DOI · URL", input("doi", o.doi, "https://doi.org/…"), false, "입력하면 제목이 링크가 됩니다") +
+            field("방법론 태그", input("methods", (o.methods || []).join(", "), "쉼표로 구분")) +
+            field("주제 태그", input("topics", (o.topics || []).join(", "), "쉼표로 구분")) +
+            field("초록 · 한줄요약", '<textarea data-k="abstract">' + esc(o.abstract || "") + "</textarea>", true) +
+          "</div>" +
+          '<div class="foot">' +
+            '<button class="btn primary" id="btnSave">저장</button>' +
+            '<button class="btn ghost" id="btnCancel">취소</button>' +
+          '</div><div id="formMsg"></div></div>';
+      } else {
+        var a = editing;
+        host.innerHTML = '<div class="editor"><h3>' + (isNew ? "새 연구자" : "연구자 편집") + "</h3>" +
+          '<div class="fgrid">' +
+            field('이름 <span class="req">*</span>', input("name", a.name)) +
+            field("영문 이름", input("nameEn", a.nameEn)) +
+            field('식별자 <span class="req">*</span>', input("id", a.id, "예: kim_dh"), false,
+              "논문의 저자 연결에 쓰입니다. 규칙: &lt;성&gt;_&lt;이름 이니셜&gt;") +
+            field("학위", select("degree", a.degree, DEGREES)) +
+            field("상태", '<select data-k="status"><option value="">— 없음(지도교수) —</option>' +
+              Object.keys(STATUS).map(function (k) {
+                return '<option value="' + k + '"' + (k === a.status ? " selected" : "") + ">" + esc(STATUS[k]) + "</option>";
+              }).join("") + "</select>") +
+          "</div>" +
+          '<div class="foot">' +
+            '<button class="btn primary" id="btnSave">저장</button>' +
+            '<button class="btn ghost" id="btnCancel">취소</button>' +
+          '</div><div id="formMsg"></div></div>';
+      }
+      host.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // 폼 → editing 객체로 값 수집
+    function collect() {
+      var host = $("#editorHost");
+      host.querySelectorAll("[data-k]").forEach(function (el) {
+        var k = el.getAttribute("data-k"), v = el.value;
+        if (k === "year") editing[k] = v ? Number(v) : "";
+        else if (k === "methods" || k === "topics") {
+          editing[k] = v.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+        } else editing[k] = v.trim();
+      });
+    }
+
+    function validate() {
+      if (tab === "papers") {
+        if (!editing.title) return "제목을 입력해 주세요.";
+        if (!(editing.authorIds || []).length) return "저자를 한 명 이상 추가해 주세요.";
+        if (!editing.year) return "연도를 입력해 주세요.";
+      } else {
+        if (!editing.name) return "이름을 입력해 주세요.";
+        if (!editing.id) return "식별자를 입력해 주세요.";
+        if (!/^[a-z][a-z0-9_]*$/.test(editing.id)) return "식별자는 영문 소문자·숫자·밑줄만 쓸 수 있습니다.";
+        var dup = data.authors.filter(function (x) {
+          return x.id === editing.id && x.__orig !== editing.__orig;
+        }).length;
+        if (isNew && data.authors.some(function (x) { return x.id === editing.id; })) return "이미 쓰이는 식별자입니다.";
+        if (dup) return "이미 쓰이는 식별자입니다.";
+      }
+      return null;
+    }
+
+    // ------------------------------------------------------------- 이벤트
+    document.querySelectorAll(".adm-tabs button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll(".adm-tabs button").forEach(function (x) { x.classList.remove("on"); });
+        b.classList.add("on");
+        tab = b.getAttribute("data-tab");
+        editing = null; renderEditor(); renderList();
+      });
+    });
+
+    $("#q").addEventListener("input", renderList);
+
+    $("#btnNew").addEventListener("click", function () {
+      isNew = true;
+      editing = tab === "papers"
+        ? { id: nextId("p", data.papers.map(function (p) { return p.id; })),
+            title: "", authorIds: [], extAuthors: [], venue: "", year: new Date().getFullYear(),
+            type: "journal", methods: [], topics: [], doi: "", abstract: "" }
+        : { id: "", name: "", nameEn: "", degree: "PhD", status: "enrolled" };
+      renderEditor();
+    });
+
+    $("#list").addEventListener("click", function (ev) {
+      var btn = ev.target.closest("button[data-act]");
+      if (!btn) return;
+      var id = btn.closest(".row").getAttribute("data-id");
+      var arr = tab === "papers" ? data.papers : data.authors;
+      var idx = arr.findIndex(function (o) { return o.id === id; });
+      if (idx < 0) return;
+
+      if (btn.getAttribute("data-act") === "edit") {
+        isNew = false;
+        editing = clone(arr[idx]);
+        editing.__orig = id;
+        renderEditor();
+        return;
+      }
+      // 삭제
+      var used = tab === "authors"
+        ? data.papers.filter(function (p) { return (p.authorIds || []).indexOf(id) >= 0; }).length
+        : 0;
+      var msg = tab === "papers"
+        ? '논문 "' + arr[idx].title + '" 을(를) 삭제할까요?'
+        : arr[idx].name + " 연구자를 삭제할까요?" +
+          (used ? "\n\n참여 논문 " + used + "편에서는 이름 문자열로 남습니다." : "");
+      if (!confirm(msg)) return;
+
+      if (tab === "authors" && used) {
+        // 연결을 끊되 이름은 보존
+        var nm = arr[idx].name;
+        data.papers.forEach(function (p) {
+          p.authorIds = (p.authorIds || []).map(function (e) { return e === id ? nm : e; });
+        });
+      }
+      arr.splice(idx, 1);
+      editing = null; persist(); renderEditor(); renderList();
+    });
+
+    $("#editorHost").addEventListener("click", function (ev) {
+      var rm = ev.target.closest("button[data-rm]");
+      if (rm) {
+        collect();
+        editing.authorIds.splice(Number(rm.getAttribute("data-rm")), 1);
+        renderEditor(); return;
+      }
+      if (ev.target.id === "btnCancel") { editing = null; renderEditor(); return; }
+      if (ev.target.id === "btnSave") {
+        collect();
+        var err = validate();
+        if (err) { $("#formMsg").innerHTML = '<div class="err">' + esc(err) + "</div>"; return; }
+
+        var arr = tab === "papers" ? data.papers : data.authors;
+        var orig = editing.__orig;
+        delete editing.__orig;
+
+        if (tab === "authors" && orig && orig !== editing.id) {
+          // 식별자가 바뀌면 논문의 참조도 함께 변경
+          data.papers.forEach(function (p) {
+            p.authorIds = (p.authorIds || []).map(function (e) { return e === orig ? editing.id : e; });
+          });
+        }
+        if (isNew) arr.push(editing);
+        else {
+          var i = arr.findIndex(function (o) { return o.id === orig; });
+          arr[i] = editing;
+        }
+        editing = null; persist(); renderEditor(); renderList();
+      }
+    });
+
+    $("#editorHost").addEventListener("change", function (ev) {
+      if (ev.target.id === "addReg" && ev.target.value) {
+        collect();
+        editing.authorIds.push(ev.target.value);
+        renderEditor();
+      }
+    });
+    $("#editorHost").addEventListener("keydown", function (ev) {
+      if (ev.target.id === "addStr" && ev.key === "Enter") {
+        ev.preventDefault();
+        var v = ev.target.value.trim();
+        if (!v) return;
+        collect();
+        editing.authorIds.push(v);
+        renderEditor();
+      }
+    });
+
+    $("#btnReset").addEventListener("click", function () {
+      if (!dirty()) { alert("배포본과 같습니다. 되돌릴 편집 내용이 없습니다."); return; }
+      if (!confirm("편집 내용을 모두 버리고 현재 배포본 상태로 되돌릴까요?")) return;
+      data = clone(base);
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      editing = null; renderEditor(); renderList();
+    });
+
+    // --------------------------------------------------------- data.js 생성
+    var ORDER = ["id", "title", "titleEn", "authorIds", "extAuthors", "venue", "publisher",
+                 "year", "type", "methods", "topics", "doi", "abstract"];
+    var AORDER = ["id", "name", "nameEn", "degree", "status"];
+
+    function lit(v) { return JSON.stringify(v); }
+    function arrLit(a) { return "[" + (a || []).map(lit).join(", ") + "]"; }
+
+    function blockPaper(p) {
+      var L = ["    {"];
+      ORDER.forEach(function (k) {
+        if (!(k in p)) return;
+        var v = p[k];
+        var keep = (k === "methods" || k === "topics" || k === "extAuthors" || k === "authorIds");
+        if (!keep && (v === "" || v == null)) return;
+        if (Array.isArray(v)) L.push("      " + k + ": " + arrLit(v) + ",");
+        else if (typeof v === "number") L.push("      " + k + ": " + v + ",");
+        else L.push("      " + k + ": " + lit(v) + ",");
+      });
+      L.push("    },");
+      return L.join("\n");
+    }
+    function blockAuthor(a) {
+      var L = ["    {"];
+      AORDER.forEach(function (k) {
+        if (!a[k]) return;
+        L.push("      " + k + ": " + lit(a[k]) + ",");
+      });
+      L.push("    },");
+      return L.join("\n");
+    }
+
+    function buildFile(tpl) {
+      var authors = data.authors.map(blockAuthor).join("\n");
+      var papers  = data.papers.map(blockPaper).join("\n");
+      var out = tpl.replace(/(\n  authors: \[\n)[\s\S]*?(\n  \],\n)/, function (m, a, b) {
+        return a + authors.replace(/,$/, "") + b;
+      });
+      out = out.replace(/(\n  papers: \[\n)[\s\S]*?(\n  \],\n)/, function (m, a, b) {
+        return a + papers.replace(/,$/, "") + b;
+      });
+      return out;
+    }
+
+    $("#btnExport").addEventListener("click", function () {
+      fetch("data.js", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (tpl) {
+        var text = buildFile(tpl);
+        $("#out").value = text;
+        $("#dlgMsg").textContent = dirty() ? "" : "배포본과 동일한 내용입니다.";
+        $("#dlg").showModal();
+      }).catch(function () {
+        alert("data.js 원본을 불러오지 못했습니다. 파일을 직접 열어 확인해 주세요.");
+      });
+    });
+    $("#btnClose").addEventListener("click", function () { $("#dlg").close(); });
+    $("#btnCopy").addEventListener("click", function () {
+      var ta = $("#out");
+      navigator.clipboard.writeText(ta.value).then(function () {
+        $("#dlgMsg").textContent = "복사했습니다.";
+      }).catch(function () {
+        ta.select(); $("#dlgMsg").textContent = "복사에 실패했습니다. 직접 선택해 복사해 주세요.";
+      });
+    });
+    $("#btnDownload").addEventListener("click", function () {
+      var blob = new Blob([$("#out").value], { type: "text/javascript;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "data.js";
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      $("#dlgMsg").textContent = "내려받았습니다.";
+    });
+
+    renderList();
+  })();
+  </script>
+</body>
+</html>
