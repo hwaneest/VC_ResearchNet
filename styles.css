@@ -263,8 +263,9 @@ main { padding: 22px 0 80px; }
 .avatar {
   width: 44px; height: 44px;
   border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid var(--ink);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--serif);
   font-size: 18px;
@@ -277,13 +278,15 @@ main { padding: 22px 0 80px; }
 .deg {
   display: inline-block;
   font-size: 11px;
-  border: 1px solid var(--ink);
+  border: 1px solid transparent;
   border-radius: 4px;
   padding: 0 6px;
   margin-right: 5px;
 }
-.deg.phd { background: var(--ink); color: #fff; }
-.deg.ms  { background: var(--paper); color: var(--ink); }
+/* 지도교수 = 검정, 박사 = 진한 회색, 석사·학사 = 회색 (흰 글씨 대비 4.5:1 이상) */
+.deg.professor { background: var(--ink); color: #fff; }
+.deg.phd { background: #3d3d3d; color: #fff; }
+.deg.ms  { background: #6e6e6e; color: #fff; }
 .status-dot { font-size: 12px; color: var(--ink-2); }
 .person .pcount { font-size: 12px; color: var(--ink-3); margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
 

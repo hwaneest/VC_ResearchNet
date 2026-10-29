@@ -39,7 +39,7 @@
   const statusLabel = (s) =>
     ({ enrolled: "재학", completed: "수료", graduated: "졸업" }[s] || s || "");
   // 학위 배지 스타일: 박사·지도교수는 강조(검정 채움), 나머지는 외곽선
-  const degClass = (d) => (d === "PhD" || d === "advisor" ? "phd" : "ms");
+  const degClass = (d) => (d === "advisor" ? "professor" : d === "PhD" ? "phd" : "ms");
   const typeLabel = (t) =>
     ({ journal: "학술지", conference: "학회", thesis: "학위논문" }[t] || t || "");
 
@@ -480,7 +480,7 @@
         // 논문 수가 많은 노드가 화면을 삼키지 않도록 면적 비례(제곱근) 스케일
         const r = 12 + 6 * Math.sqrt(n.deg);
         // 지도교수·박사 = 검정, 석사·학사 = 흰색 (연구자 카드의 degClass와 동일 기준)
-        const isDark = degClass(n.a.degree) === "phd";
+        const isDark = degClass(n.a.degree) !== "ms";
         const dim = hi && !hi.has(n.id);
         const fill = isDark ? (dim ? "#bdbdbd" : "#111") : (dim ? "#f2f2f2" : "#fff");
         const stroke = dim ? "#cfcfcf" : "#111";
