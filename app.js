@@ -477,7 +477,8 @@
       });
       // 노드
       nodes.forEach((n) => {
-        const r = 14 + n.deg * 3.2;
+        // 논문 수가 많은 노드가 화면을 삼키지 않도록 면적 비례(제곱근) 스케일
+        const r = 12 + 6 * Math.sqrt(n.deg);
         // 지도교수·박사 = 검정, 석사·학사 = 흰색 (연구자 카드의 degClass와 동일 기준)
         const isDark = degClass(n.a.degree) === "phd";
         const dim = hi && !hi.has(n.id);
