@@ -19,9 +19,12 @@
  *    - title     : 논문 제목
  *    - authorIds : 저자 배열 (저자 순서대로)
                   · authors에 등록된 사람 → 그 사람의 id  (이름이 링크로 표시, 네트워크에 노드 생성)
-                  · 등록되지 않은 사람    → 이름을 그대로 문자열로  (예: "유승완")
+                  · 등록되지 않은 사람    → 이름을 그대로 문자열로  (예: "최현정", "송낙현")
                     이름만 표시되고 클릭은 되지 않으며, 네트워크에는 나타나지 않습니다.
                     나중에 authors에 추가한 뒤 id로 바꾸면 자동으로 연결됩니다.
+                    한 논문 안에 id와 이름을 섞어 써도 됩니다.
+                    (예: authorIds: ["yoo_sw", "kim_dh", "lee_c"] 처럼 전원 등록,
+                         authorIds: ["최현정", "lee_c", "이재은"] 처럼 혼용)
  *    - extAuthors: 랩 외부 공저자 이름 배열 (선택)
  *    - titleEn   : 영문 제목 (선택)
  *    - venue     : 게재지/학회명 (권/호/페이지까지 함께 적어도 됩니다)
@@ -35,6 +38,15 @@
  *
  *  ※ 태그(methods/topics)는 자유롭게 쓰되, 같은 개념은 같은 문자열로 통일하면
  *     검색·필터가 깔끔하게 동작합니다. (예: "텍스트 마이닝"으로 통일)
+ *
+ *  ※ degree가 "advisor"(지도교수)인 사람은 status를 적지 않습니다.
+ *     BS/MS/PhD 와 달리 재학·수료·졸업 구분이 없는 특별 역할입니다.
+ *
+ *  ※ [주석 작성 위치 주의]
+ *     관리자 페이지(admin.html)의 "data.js 내보내기"는 authors·papers 배열을
+ *     통째로 다시 만들어 넣습니다. 그래서 배열 안에 적은 줄 끝 주석은 사라지고,
+ *     이 상단 주석 블록과 파일 맨 아래 메모만 그대로 남습니다.
+ *     남겨야 할 설명은 배열 안이 아니라 여기에 적어 주세요.
  * ========================================================================== */
 
 window.LAB_DATA = {
@@ -52,7 +64,7 @@ window.LAB_DATA = {
       id: "lee_c",
       name: "이찬",
       nameEn: "Chan Lee",
-      degree: "advisor",   // 지도교수 (BS/MS/PhD 외 특별 역할)
+      degree: "advisor",
     },
     {
       id: "kim_dh",
@@ -213,7 +225,7 @@ window.LAB_DATA = {
       id: "p13",
       title: "텍스트 마이닝을 활용한 테크노스트레스 연구 동향 분석",
       titleEn: "Analyzing Research Trends in Technostress Using Text Mining",
-      authorIds: ["yoo_sw", "kim_dh", "lee_c"],   // "유승완"은 연구자 미등록 → 이름만 표시
+      authorIds: ["yoo_sw", "kim_dh", "lee_c"],
       extAuthors: [],
       venue: "휴먼웨어연구, 9(1), 33-63",
       publisher: "고려대학교 HRD정책연구소",
