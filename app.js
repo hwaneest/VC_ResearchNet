@@ -399,6 +399,83 @@
     );
   }
 
+  /* ------------------------- 네트워크 조작 패널 ------------------------- */
+  // 데이터에 맞춰 슬라이더 범위를 정합니다.
+  function syncNetCtlRange() {
+    const maxDeg = Math.max(1, ...NET.nodes.map((n) => n.deg));
+    const maxW = Math.max(1, ...NET.links.map((l) => l.w));
+    const d = $("#ncMinDeg"), w = $("#ncMinW");
+    if (d) d.max = Math.min(maxDeg, 20);
+    if (w) w.max = Math.min(maxW, 20);
+  }
+
+  function paintNetCtlValues() {
+    const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+    set("#ncSizeV", NETOPT.size.toFixed(1) + "×");
+    set("#ncMinDegV", NETOPT.minDeg + "편");
+    set("#ncMinWV", NETOPT.minW + "회");
+    set("#ncDistV", NETOPT.dist);
+    set("#ncRepV", NETOPT.rep);
+  }
+
+  function writeNetCtl() {
+    const v = (id, val) => { const e = $(id); if (e) e.value = val; };
+    v("#ncSize", NETOPT.size); v("#ncMinDeg", NETOPT.minDeg); v("#ncMinW", NETOPT.minW);
+    v("#ncDist", NETOPT.dist); v("#ncRep", NETOPT.rep);
+    const i = $("#ncIsolate"), l = $("#ncLabels");
+    if (i) i.checked = NETOPT.isolate;
+    if (l) l.checked = NETOPT.labels;
+    paintNetCtlValues();
+  }
+
+  function bindNetCtl() {
+    if (!$("#netctl")) return;
+    const onNum = (id, key, parse) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        NETOPT[key] = parse(el.value);
+        paintNetCtlValues();
+        if (NET.restart) NET.restart();
+      });
+    };
+    onNum("#ncSize", "size", parseFloat);
+    onNum("#ncMinDeg", "minDeg", (x) => parseInt(x, 10));
+    onNum("#ncMinW", "minW", (x) => parseInt(x, 10));
+    onNum("#ncDist", "dist", (x) => parseInt(x, 10));
+    onNum("#ncRep", "rep", (x) => parseInt(x, 10));
+
+    const onBool = (id, key) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("change", () => {
+        NETOPT[key] = el.checked;
+        if (NET.restart) NET.restart();
+      });
+    };
+    onBool("#ncIsolate", "isolate");
+    onBool("#ncLabels", "labels");
+
+    $("#ncReset").addEventListener("click", () => {
+      Object.assign(NETOPT, NETDEFAULT);
+      writeNetCtl();
+      if (NET.restart) NET.restart();
+    });
+    $("#ncRelayout").addEventListener("click", () => {
+      // 위치만 다시 흩뜨립니다. 설정은 그대로 둡니다.
+      const cx = 480, cy = 300, R = 200;
+      const shown = NET.nodes.filter((n) => !n.hidden);
+      shown.forEach((n, i) => {
+        const ang = (i / Math.max(1, shown.length)) * Math.PI * 2;
+        n.x = cx + Math.cos(ang) * R + (Math.random() - 0.5) * 40;
+        n.y = cy + Math.sin(ang) * R + (Math.random() - 0.5) * 40;
+        n.vx = n.vy = 0;
+      });
+      if (NET.restart) NET.restart();
+    });
+    writeNetCtl();
+  }
+
   // ------------------------------------------------------------------ 뷰 전환
   function setView(v) {
     state.view = v;
@@ -461,6 +538,46 @@
    * ======================================================================== */
   const NET = { nodes: [], links: [], sim: null, svg: null, dragging: null, raf: null };
 
+  // 네트워크 보기 설정 (조작 패널)
+  const NETOPT = {
+    size: 1,        // 노드 크기 배율
+    minDeg: 0,      // 이 편수 미만 연구자는 숨김
+    minW: 1,        // 이 횟수 미만 공저선은 숨김
+    dist: 90,       // 링크가 당기는 목표 거리
+    rep: 5200,      // 노드끼리 밀어내는 힘
+    isolate: false, // 연결 없는 노드 숨김
+    labels: true,   // 이름 표시
+  };
+  const NETDEFAULT = Object.assign({}, NETOPT);
+
+  // 설정에 따라 보일 노드·링크를 정합니다. (배열에서 지우지 않고 표시만 바꿔
+  //  인덱스 참조와 드래그 상태가 깨지지 않게 합니다.)
+  function applyNetFilter() {
+    NET.nodes.forEach((n) => { n.hidden = n.deg < NETOPT.minDeg; });
+    NET.links.forEach((l) => {
+      l.hidden = l.w < NETOPT.minW ||
+        NET.nodes[l.source].hidden || NET.nodes[l.target].hidden;
+    });
+    if (NETOPT.isolate) {
+      const linked = new Set();
+      NET.links.forEach((l) => {
+        if (l.hidden) return;
+        linked.add(l.source); linked.add(l.target);
+      });
+      NET.nodes.forEach((n, i) => { if (!linked.has(i)) n.hidden = true; });
+      NET.links.forEach((l) => {
+        l.hidden = l.hidden || NET.nodes[l.source].hidden || NET.nodes[l.target].hidden;
+      });
+    }
+    const vn = NET.nodes.filter((n) => !n.hidden).length;
+    const vl = NET.links.filter((l) => !l.hidden).length;
+    const box = $("#ncCount");
+    if (box) {
+      box.textContent = `연구자 ${vn} / ${NET.nodes.length}명 · 공저 관계 ${vl} / ${NET.links.length}개` +
+        (vn < NET.nodes.length ? "  (설정으로 일부가 숨겨져 있습니다)" : "");
+    }
+  }
+
   function buildGraph() {
     // 노드: 연구자
     NET.nodes = authors.map((a) => ({
@@ -502,12 +619,14 @@
 
     // 반발력 (모든 쌍)
     for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].hidden) continue;
       for (let j = i + 1; j < nodes.length; j++) {
+        if (nodes[j].hidden) continue;
         const a = nodes[i], b = nodes[j];
         let dx = a.x - b.x, dy = a.y - b.y;
         let d2 = dx * dx + dy * dy || 0.01;
         let d = Math.sqrt(d2);
-        const rep = 5200 / d2;
+        const rep = NETOPT.rep / d2;
         const fx = (dx / d) * rep, fy = (dy / d) * rep;
         a.vx += fx; a.vy += fy;
         b.vx -= fx; b.vy -= fy;
@@ -515,10 +634,11 @@
     }
     // 링크 인력 (스프링)
     links.forEach((l) => {
+      if (l.hidden) return;
       const a = nodes[l.source], b = nodes[l.target];
       let dx = b.x - a.x, dy = b.y - a.y;
       let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      const target = 90;
+      const target = NETOPT.dist;
       const k = (d - target) * 0.02 * Math.min(l.w, 3);
       const fx = (dx / d) * k, fy = (dy / d) * k;
       a.vx += fx; a.vy += fy;
@@ -526,6 +646,7 @@
     });
     // 중심으로 당기기 + 감쇠 + 적용
     nodes.forEach((n) => {
+      if (n.hidden) return;
       n.vx += (cx - n.x) * 0.005;
       n.vy += (cy - n.y) * 0.005;
       n.vx *= 0.82; n.vy *= 0.82;
@@ -544,7 +665,8 @@
   function drawNetwork() {
     const svg = $("#net");
     if (!svg) return;
-    if (!NET.nodes.length) buildGraph();
+    if (!NET.nodes.length) { buildGraph(); syncNetCtlRange(); }
+    applyNetFilter();
     svg.setAttribute("viewBox", "0 0 960 600");
     const hi = highlightedSet();
 
@@ -553,6 +675,7 @@
       let s = "";
       // 링크
       links.forEach((l) => {
+        if (l.hidden) return;
         const a = nodes[l.source], b = nodes[l.target];
         const dim = hi && !(hi.has(a.id) && hi.has(b.id));
         s += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
@@ -561,8 +684,9 @@
       });
       // 노드
       nodes.forEach((n) => {
+        if (n.hidden) return;
         // 논문 수가 많은 노드가 화면을 삼키지 않도록 면적 비례(제곱근) 스케일
-        const r = 12 + 6 * Math.sqrt(n.deg);
+        const r = (12 + 6 * Math.sqrt(n.deg)) * NETOPT.size;
         // 지도교수·박사 = 검정, 석사·학사 = 흰색 (연구자 카드의 degClass와 동일 기준)
         const isDark = degClass(n.a.degree) !== "ms";
         const dim = hi && !hi.has(n.id);
@@ -571,9 +695,9 @@
         const txtColor = isDark ? (dim ? "#eee" : "#fff") : (dim ? "#bbb" : "#111");
         s += `<g class="netnode" data-author="${n.id}" style="cursor:pointer">
           <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2" />
-          <text x="${n.x}" y="${n.y + r + 14}" text-anchor="middle"
+          ${NETOPT.labels ? `<text x="${n.x}" y="${n.y + r + 14}" text-anchor="middle"
             font-family="var(--sans)" font-size="12"
-            fill="${dim ? "#c2c2c2" : "#111"}">${esc(n.a.name)}</text>
+            fill="${dim ? "#c2c2c2" : "#111"}">${esc(n.a.name)}</text>` : ""}
           <text x="${n.x}" y="${n.y + 4}" text-anchor="middle"
             font-family="var(--serif)" font-size="${Math.max(9, r * 0.7)}"
             fill="${txtColor}" style="pointer-events:none">${esc(n.deg)}</text>
@@ -597,6 +721,12 @@
     if (NET.raf) cancelAnimationFrame(NET.raf);
     energyFrames = 0;
     loop();
+    // 설정이 바뀌면 다시 안정화시킵니다.
+    NET.restart = function () {
+      applyNetFilter();
+      energyFrames = 0;
+      if (!NET.raf) loop();
+    };
 
     // 드래그 상호작용 (SVG 좌표 변환)
     function svgPoint(evt) {
@@ -721,6 +851,7 @@
     fillSelect($("#fMethod"), uniqueTags("methods"));
     fillSelect($("#fTopic"), uniqueTags("topics"));
     bind();
+    bindNetCtl();
     setView(state.view);   // 툴바·탭 상태까지 함께 맞춥니다
   }
 

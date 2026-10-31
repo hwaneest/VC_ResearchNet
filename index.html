@@ -100,8 +100,38 @@
           <p class="net-hint">
             원(●) = 연구자, 선 = 공저 관계(굵을수록 공저 논문이 많음).
             노드를 드래그해 옮기거나 클릭하면 해당 연구자의 논문을 볼 수 있어요.
-            위 검색·필터로 특정 방법론/주제 연구자만 강조할 수 있습니다.
+            위 검색·필터로 특정 방법론/주제 연구자만 강조할 수 있고,
+            아래 설정으로 크기·범위·배치를 바꿔 가며 살펴볼 수 있습니다.
           </p>
+          <div class="netctl" id="netctl">
+            <div class="nc">
+              <label for="ncSize">노드 크기 <b id="ncSizeV">1.0×</b></label>
+              <input type="range" id="ncSize" min="0.5" max="2.5" step="0.1" value="1" />
+            </div>
+            <div class="nc">
+              <label for="ncMinDeg">최소 논문 수 <b id="ncMinDegV">0편</b></label>
+              <input type="range" id="ncMinDeg" min="0" max="10" step="1" value="0" />
+            </div>
+            <div class="nc">
+              <label for="ncMinW">최소 공저 횟수 <b id="ncMinWV">1회</b></label>
+              <input type="range" id="ncMinW" min="1" max="10" step="1" value="1" />
+            </div>
+            <div class="nc">
+              <label for="ncDist">연결 거리 <b id="ncDistV">90</b></label>
+              <input type="range" id="ncDist" min="50" max="200" step="5" value="90" />
+            </div>
+            <div class="nc">
+              <label for="ncRep">퍼짐 정도 <b id="ncRepV">5200</b></label>
+              <input type="range" id="ncRep" min="1500" max="14000" step="100" value="5200" />
+            </div>
+            <div class="nc checks">
+              <label><input type="checkbox" id="ncIsolate" /> 연결 없는 노드 숨기기</label>
+              <label><input type="checkbox" id="ncLabels" checked /> 이름 표시</label>
+              <button class="btn-mini" id="ncReset">초기화</button>
+              <button class="btn-mini" id="ncRelayout">다시 배치</button>
+            </div>
+            <div class="nc-count" id="ncCount"></div>
+          </div>
           <svg id="net"></svg>
           <div class="net-legend">
             <span class="k"><span class="swatch"></span> 지도교수 · 박사</span>

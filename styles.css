@@ -495,3 +495,34 @@ footer.site .sep { color: #6d7075; margin: 0 8px; }
 @media (max-width: 560px) {
   .stat { flex: 1 1 calc(50% - 10px); }
 }
+
+/* ------------------------- 네트워크 조작 패널 ------------------------- */
+.netctl {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px 16px; align-items: end;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 12px; background: var(--paper-2, #fafafa);
+}
+.netctl .nc { display: flex; flex-direction: column; gap: 4px; }
+.netctl label { font-size: 11.5px; color: var(--ink-3); }
+.netctl label b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.netctl input[type="range"] { width: 100%; accent-color: var(--ink); }
+.netctl .checks {
+  grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap;
+  align-items: center; gap: 14px; padding-top: 2px;
+}
+.netctl .checks label {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12.5px; color: var(--ink); cursor: pointer;
+}
+.netctl .checks input { accent-color: var(--ink); }
+.btn-mini {
+  font-family: inherit; font-size: 12px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 10px; background: #fff; color: var(--ink);
+}
+.btn-mini:hover { border-color: var(--ink); }
+.nc-count {
+  grid-column: 1 / -1; font-size: 12px; color: var(--ink-3);
+  border-top: 1px solid var(--line); padding-top: 8px;
+}
