@@ -158,7 +158,7 @@ window.LAB_DATA = {
       id: "jung_eh",
       name: "정은희",
       degree: "PhD",
-      status: "enrolled",
+      status: "completed",
     },
     {
       id: "shim_sy",
@@ -216,7 +216,7 @@ window.LAB_DATA = {
       name: "박난주",
       degree: "PhD",
       status: "completed",
-    },
+    }
   ],
 
   /* ------------------------------- 논문 ------------------------------- */
