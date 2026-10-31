@@ -197,7 +197,7 @@
     <div class="dfoot">
       <button class="btn primary" id="btnDownload">파일 내려받기</button>
       <button class="btn" id="btnCopy">클립보드 복사</button>
-      <span id="dlgMsg" class="ok" style="align-self:center"></span>
+      <span id="dlgMsg" style="align-self:center;font-size:12.5px"></span>
       <button class="btn ghost" id="btnClose" style="margin-left:auto">닫기</button>
     </div>
   </dialog>
@@ -704,7 +704,20 @@
       fetch("data.js", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (tpl) {
         var text = buildFile(tpl);
         $("#out").value = text;
-        $("#dlgMsg").textContent = dirty() ? "" : "배포본과 동일한 내용입니다.";
+        // 공개 중인 data.js 를 실제로 해석해 데이터끼리 비교합니다.
+        // (주석·들여쓰기 차이에 휘둘리지 않도록 텍스트 비교는 쓰지 않습니다.)
+        var same = false;
+        try {
+          var w = {};
+          new Function("window", tpl)(w);
+          same = w.LAB_DATA &&
+            JSON.stringify({ a: w.LAB_DATA.authors, p: w.LAB_DATA.papers }) ===
+            JSON.stringify({ a: data.authors, p: data.papers });
+        } catch (e) { /* 해석 실패 시 "다름"으로 둡니다 */ }
+        $("#dlgMsg").textContent = same
+          ? "지금 공개 중인 내용과 같습니다 — 커밋할 변경이 없습니다."
+          : "공개 중인 내용과 다릅니다 — 내려받아 커밋하면 사이트에 반영됩니다.";
+        $("#dlgMsg").style.color = same ? "var(--ink-3)" : "#1b6b2f";
         $("#dlg").showModal();
       }).catch(function () {
         alert("data.js 원본을 불러오지 못했습니다. 파일을 직접 열어 확인해 주세요.");
