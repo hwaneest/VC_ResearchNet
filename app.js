@@ -5,6 +5,9 @@
 (function () {
   "use strict";
 
+  // 새로고침해도 읽던 자리로 돌아가지 않고 항상 맨 위에서 시작합니다
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
   const DATA = window.LAB_DATA || { meta: {}, authors: [], papers: [] };
   const authors = DATA.authors || [];
   const papers = DATA.papers || [];
@@ -853,7 +856,10 @@
     bind();
     bindNetCtl();
     setView(state.view);   // 툴바·탭 상태까지 함께 맞춥니다
+    window.scrollTo(0, 0);
   }
 
   document.addEventListener("DOMContentLoaded", init);
+  // 브라우저가 load 이후 위치를 되돌리는 경우까지 막습니다
+  window.addEventListener("load", () => window.scrollTo(0, 0));
 })();
