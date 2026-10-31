@@ -530,10 +530,11 @@
         if (!editing.name) return "이름을 입력해 주세요.";
         if (!editing.id) return "식별자를 입력해 주세요.";
         if (!/^[a-z][a-z0-9_]*$/.test(editing.id)) return "식별자는 영문 소문자·숫자·밑줄만 쓸 수 있습니다.";
-        var dup = data.authors.filter(function (x) {
-          return x.id === editing.id && x.__orig !== editing.__orig;
-        }).length;
-        if (isNew && data.authors.some(function (x) { return x.id === editing.id; })) return "이미 쓰이는 식별자입니다.";
+        // 편집 중인 본인은 중복이 아닙니다. orig 는 편집 전 id (새 항목이면 undefined)
+        var orig = editing.__orig;
+        var dup = data.authors.some(function (x) {
+          return x.id === editing.id && x.id !== orig;
+        });
         if (dup) return "이미 쓰이는 식별자입니다.";
       }
       return null;
