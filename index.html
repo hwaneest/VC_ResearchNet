@@ -15,7 +15,8 @@
           <div class="sub" id="siteSub">우리 연구실 구성원들의 연구를 한곳에서</div>
         </div>
         <nav class="tabs">
-          <button data-view="papers" class="active">논문</button>
+          <button data-view="home" class="active">홈</button>
+          <button data-view="papers">논문</button>
           <button data-view="people">연구자</button>
           <button data-view="network">네트워크</button>
         </nav>
@@ -78,8 +79,13 @@
     </div>
 
     <main>
+      <!-- 홈 뷰 -->
+      <section class="view active" id="view-home">
+        <div class="home" id="home"></div>
+      </section>
+
       <!-- 논문 뷰 -->
-      <section class="view active" id="view-papers">
+      <section class="view" id="view-papers">
         <div class="paperlist" id="paperlist"></div>
       </section>
 

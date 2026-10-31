@@ -12,7 +12,7 @@
 
   // ------------------------------------------------------------------ 상태
   const state = {
-    view: "papers",
+    view: "home",
     q: "",
     degree: "",
     status: "",
@@ -319,6 +319,86 @@
   function openOverlay() { $("#overlay").classList.add("open"); }
   function closePanel() { $("#overlay").classList.remove("open"); }
 
+  /* ==========================================================================
+   *  홈 뷰 — 연구실 소개와 숫자 요약, 최근 논문, 구성원 바로가기
+   * ======================================================================== */
+  function renderHome() {
+    const years = papers.map((p) => p.year).filter(Boolean);
+    const recent = papers.slice().sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 5);
+    const byType = papers.reduce((a, p) => ((a[p.type] = (a[p.type] || 0) + 1), a), {});
+    // 등록 연구자만, 논문 많은 순
+    const ranked = authors
+      .map((a) => ({ a, n: papersOfAuthor(a.id).length }))
+      .sort((x, y) => y.n - x.n);
+
+    const stat = (n, label) =>
+      `<div class="stat"><div class="n">${esc(n)}</div><div class="l">${esc(label)}</div></div>`;
+
+    $("#home").innerHTML = `
+      <section class="home-hero">
+        <h2>${esc((DATA.meta || {}).labName || "연구실")}</h2>
+        <p>${esc((DATA.meta || {}).description || (DATA.meta || {}).subtitle || "")}</p>
+      </section>
+
+      <div class="stats">
+        ${stat(papers.length + "편", "논문")}
+        ${stat(authors.length + "명", "등록 연구자")}
+        ${stat((byType.journal || 0) + "편", "학술지")}
+        ${stat((byType.conference || 0) + "건", "학회 발표")}
+        ${years.length ? stat(Math.min(...years) + "–" + Math.max(...years), "수록 기간") : ""}
+      </div>
+
+      <section class="home-sec">
+        <div class="home-head">
+          <h3>최근 논문</h3>
+          <button class="linkbtn" data-go="papers">전체 보기 →</button>
+        </div>
+        <ul class="home-list">
+          ${recent.map((p) => `
+            <li>
+              <span class="y">${esc(p.year)}</span>
+              <span class="t">${
+                p.doi
+                  ? `<a class="link" href="${esc(p.doi)}" target="_blank" rel="noopener">${esc(p.title)}</a>`
+                  : esc(p.title)
+              }</span>
+              <span class="a">${authorLine(p)}</span>
+            </li>`).join("")}
+        </ul>
+      </section>
+
+      <section class="home-sec">
+        <div class="home-head">
+          <h3>구성원</h3>
+          <button class="linkbtn" data-go="people">연구자 보기 →</button>
+        </div>
+        <div class="home-people">
+          ${ranked.map(({ a, n }) => `
+            <button class="mini" data-author="${esc(a.id)}">
+              ${esc(a.name)}<span class="c">${esc(n)}</span>
+            </button>`).join("")}
+        </div>
+      </section>
+
+      <section class="home-sec">
+        <div class="home-head">
+          <h3>공저 네트워크</h3>
+          <button class="linkbtn" data-go="network">네트워크 보기 →</button>
+        </div>
+        <p class="home-note">
+          누가 누구와 함께 연구했는지 한눈에 봅니다. 원의 크기는 논문 수,
+          선의 굵기는 함께 쓴 논문 수입니다.
+        </p>
+      </section>`;
+
+    $("#home").querySelectorAll("[data-go]").forEach((b) =>
+      b.addEventListener("click", () => setView(b.dataset.go))
+    );
+    $("#home").querySelectorAll("[data-author]").forEach((b) =>
+      b.addEventListener("click", () => openAuthorPanel(b.dataset.author))
+    );
+  }
+
   // ------------------------------------------------------------------ 뷰 전환
   function setView(v) {
     state.view = v;
@@ -328,6 +408,8 @@
     document.querySelectorAll(".view").forEach((s) => s.classList.remove("active"));
     $("#view-" + v).classList.add("active");
 
+    // 홈은 검색·필터 대상이 아니므로 툴바 전체를 감춥니다
+    $("#toolbar").style.display = v === "home" ? "none" : "";
     // 정렬 옵션은 논문 뷰에서만 의미 있음
     $("#sortBox").style.display = v === "papers" ? "" : "none";
     // 툴바는 네트워크 뷰에서도 유지(강조 필터로 사용)
@@ -356,6 +438,7 @@
 
   // ------------------------------------------------------------------ 카운트
   function renderCount() {
+    if (state.view === "home") { $("#count").textContent = ""; return; }
     if (state.view === "people") {
       $("#count").textContent = `연구자 ${filteredAuthors().length} / ${authors.length}명`;
     } else {
@@ -367,7 +450,8 @@
   function render() {
     renderActiveChips();
     renderCount();
-    if (state.view === "papers") renderPapers();
+    if (state.view === "home") renderHome();
+    else if (state.view === "papers") renderPapers();
     else if (state.view === "people") renderPeople();
     else if (state.view === "network") drawNetwork();
   }
@@ -631,7 +715,7 @@
     fillSelect($("#fMethod"), uniqueTags("methods"));
     fillSelect($("#fTopic"), uniqueTags("topics"));
     bind();
-    render();
+    setView(state.view);   // 툴바·탭 상태까지 함께 맞춥니다
   }
 
   document.addEventListener("DOMContentLoaded", init);
