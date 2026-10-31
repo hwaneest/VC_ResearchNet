@@ -649,6 +649,12 @@
       b.addEventListener("click", () => setView(b.dataset.view))
     );
 
+    // 좌측 상단 제목 → 홈 (흔한 웹사이트 관례)
+    $("#siteTitle").addEventListener("click", () => {
+      setView("home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     // 검색
     let t;
     $("#q").addEventListener("input", (e) => {

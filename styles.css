@@ -61,6 +61,13 @@ header.site {
   margin: 0;
   font-weight: 600;
 }
+.brand h1 .homelink {
+  font: inherit; color: inherit; letter-spacing: inherit;
+  background: none; border: 0; padding: 0; margin: 0;
+  cursor: pointer; display: inline; text-align: left;
+}
+.brand h1 .homelink:hover { opacity: .72; }
+.brand h1 .homelink:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 3px; }
 .brand .sub {
   color: var(--ink-3);
   font-size: 13px;
