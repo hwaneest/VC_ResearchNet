@@ -112,6 +112,11 @@
       font-size: 11.5px; line-height: 1.5; border: 1px solid var(--line); border-radius: 6px; padding: 10px;
     }
     dialog.export .dfoot { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+    dialog.export .steps { margin-top: 10px; font-size: 12.5px; line-height: 1.9; }
+    dialog.export .steps .s { display: block; }
+    dialog.export .steps .done { color: #1b6b2f; }
+    dialog.export .steps .todo { color: var(--ink); font-weight: 600; }
+    dialog.export .steps .skip { color: var(--ink-3); }
 
     /* ------------------------------ 잠금 화면 ------------------------------ */
     .gate { max-width: 420px; margin: 14vh auto 0; }
@@ -160,9 +165,9 @@
     </div>
 
     <div class="adm-note">
-      편집한 내용은 <b>시트에 저장</b>을 눌러야 Google Sheets에 기록됩니다.
-      공개 사이트에 반영하려면 <b>data.js 내보내기</b> → 프로젝트 폴더의 <code>data.js</code> 교체 → 커밋·푸시하면
-      Vercel이 자동 배포합니다.
+      편집을 마치면 <b>구글시트 반영 및 data.js 내보내기</b> 한 번만 누르시면 됩니다.
+      ① 편집 내용이 Google Sheets에 기록되고, 이어서 ② <code>data.js</code> 파일이 만들어집니다.
+      내려받은 파일로 프로젝트 폴더의 <code>data.js</code>를 교체하고 커밋·푸시하면 Vercel이 자동 배포합니다.
       <br />공개 사이트는 이 서버를 거치지 않고 커밋된 <code>data.js</code>를 그대로 읽으므로, Google 쪽 상태와 무관하게 동작합니다.
     </div>
 
@@ -173,12 +178,11 @@
       </div>
       <div class="grow"><input type="search" id="q" placeholder="제목 · 저자 · 게재지로 검색" /></div>
       <button class="btn primary" id="btnNew">+ 새로 추가</button>
-      <button class="btn" id="btnSync">시트에 저장</button>
-      <button class="btn" id="btnExport">data.js 내보내기</button>
+      <button class="btn" id="btnPublish">구글시트 반영 및 data.js 내보내기</button>
       <button class="btn ghost" id="btnReset">편집 취소</button>
     </div>
     <div class="adm-bar" style="margin-top:-8px">
-      <span id="dirtyNote" class="adm-dirty" hidden>이 브라우저에 저장되지 않은 편집이 있습니다. <b>시트에 저장</b>을 눌러 주세요.</span>
+      <span id="dirtyNote" class="adm-dirty" hidden>이 브라우저에 저장되지 않은 편집이 있습니다. <b>구글시트 반영 및 data.js 내보내기</b>를 눌러 주세요.</span>
       <span class="adm-count" id="count"></span>
     </div>
 
@@ -188,9 +192,11 @@
 
   <dialog class="export" id="dlg">
     <div class="dhead">
-      <h3>data.js 내보내기</h3>
-      <div class="sub" style="font-size:12.5px;color:var(--ink-3)">
-        아래 내용을 프로젝트의 <code>data.js</code>에 그대로 덮어쓰세요. 파일 상단 주석과 하단 메모는 그대로 보존됩니다.
+      <h3>구글시트 반영 및 data.js 내보내기</h3>
+      <div class="steps" id="steps"></div>
+      <div class="sub" style="font-size:12.5px;color:var(--ink-3);margin-top:8px">
+        내려받은 파일로 프로젝트의 <code>data.js</code>를 덮어쓰고 커밋하면 공개 사이트에 반영됩니다.
+        파일 상단 주석과 하단 메모는 그대로 보존됩니다.
       </div>
     </div>
     <div class="dbody"><textarea id="out" spellcheck="false"></textarea></div>
@@ -700,8 +706,9 @@
       return out;
     }
 
-    $("#btnExport").addEventListener("click", function () {
-      fetch("data.js", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (tpl) {
+    // 2단계: 공개 중인 data.js 를 틀로 삼아 새 파일을 만들고 창을 엽니다.
+    function openExport(sheetNote) {
+      return fetch("data.js", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (tpl) {
         var text = buildFile(tpl);
         $("#out").value = text;
         // 공개 중인 data.js 를 실제로 해석해 데이터끼리 비교합니다.
@@ -718,11 +725,16 @@
           ? "지금 공개 중인 내용과 같습니다 — 커밋할 변경이 없습니다."
           : "공개 중인 내용과 다릅니다 — 내려받아 커밋하면 사이트에 반영됩니다.";
         $("#dlgMsg").style.color = same ? "var(--ink-3)" : "#1b6b2f";
+        $("#steps").innerHTML =
+          '<span class="s ' + (sheetNote.skipped ? "skip" : "done") + '">' +
+            (sheetNote.skipped
+              ? "1. 구글시트 반영 — 변경이 없어 건너뛰었습니다."
+              : "1. 구글시트 반영 완료 — 연구자 " + sheetNote.authors + "명 · 논문 " + sheetNote.papers + "편") +
+          "</span>" +
+          '<span class="s todo">2. 아래 <b>파일 내려받기</b> → 프로젝트의 data.js 교체 → 커밋</span>';
         $("#dlg").showModal();
-      }).catch(function () {
-        alert("data.js 원본을 불러오지 못했습니다. 파일을 직접 열어 확인해 주세요.");
       });
-    });
+    }
     $("#btnClose").addEventListener("click", function () { $("#dlg").close(); });
     $("#btnCopy").addEventListener("click", function () {
       var ta = $("#out");
@@ -759,26 +771,36 @@
       renderList();
     };
 
-    // 시트에 저장
-    $("#btnSync").addEventListener("click", function () {
-      var btn = $("#btnSync");
-      btn.disabled = true;
+    // 1단계: 편집 내용을 Google Sheets 에 기록합니다. 변경이 없으면 건너뜁니다.
+    function saveToSheet() {
+      if (!dirty()) return Promise.resolve({ ok: true, skipped: true });
+      return window.adminApi("save", {
+        payload: JSON.stringify({ authors: data.authors, papers: data.papers })
+      }).then(function (res) {
+        if (!res || !res.ok) throw new Error((res && res.error) || "알 수 없는 오류");
+        base = clone({ authors: data.authors, papers: data.papers });
+        try { localStorage.removeItem(KEY); } catch (e) {}
+        refreshDirty();
+        return res;
+      });
+    }
+
+    // 통합 버튼: 시트 반영 → 성공하면 내보내기 창
+    $("#btnPublish").addEventListener("click", function () {
+      var btn = $("#btnPublish");
       var prev = btn.textContent;
-      btn.textContent = "저장하는 중…";
-      window.adminApi("save", { payload: JSON.stringify({ authors: data.authors, papers: data.papers }) })
+      btn.disabled = true;
+      btn.textContent = "구글시트에 반영하는 중…";
+      saveToSheet()
         .then(function (res) {
-          btn.disabled = false;
-          btn.textContent = prev;
-          if (!res || !res.ok) { alert("저장하지 못했습니다: " + ((res && res.error) || "알 수 없는 오류")); return; }
-          base = clone({ authors: data.authors, papers: data.papers });
-          try { localStorage.removeItem(KEY); } catch (e) {}
-          refreshDirty();
-          alert("시트에 저장했습니다. (연구자 " + res.authors + "명 · 논문 " + res.papers + "편)\n" +
-                "공개 사이트에 반영하려면 data.js 내보내기 → 커밋이 필요합니다.");
+          btn.textContent = "data.js 만드는 중…";
+          return openExport(res);
         })
+        .then(function () { btn.disabled = false; btn.textContent = prev; })
         .catch(function (err) {
           btn.disabled = false; btn.textContent = prev;
-          alert("서버에 연결하지 못했습니다: " + err.message);
+          alert("구글시트에 반영하지 못해 중단했습니다.\n\n" + err.message +
+                "\n\n편집 내용은 그대로 남아 있습니다. 잠시 후 다시 시도해 주세요.");
         });
     });
 
